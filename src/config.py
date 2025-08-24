@@ -20,9 +20,9 @@ REPORT_DIR = OUTPUT_DIR / "report"
 # 템플릿 경로
 TEMPLATE_DIR = PROJECT_ROOT / "templates"
 
-# 분석 옵션 (성능 최적화)
+# 분석 옵션 설정
 ANALYSIS_OPTIONS = {
-    "enable_advanced_analysis": False,  # 기본적으로 고급 분석 비활성화 (성능 향상)
+    "enable_advanced_analysis": False,  # 배포 안정성을 위해 기본 비활성화
     "sentiment_thresholds": {
         "positive": 8,  # 평점 8 이상 = 긍정
         "negative": 6,  # 평점 6 이하 = 부정
@@ -33,15 +33,15 @@ ANALYSIS_OPTIONS = {
         "negative_ratio": 0.7,  # 부정 비율 가중치
         "mention_frequency": 0.3  # 언급 빈도 가중치
     },
-    # 고급 분석 옵션 (성능 최적화)
+    # 고급 분석 옵션 (배포 안정성을 위해 비활성화)
     "advanced_analysis": {
-        "enable_rating_prediction": False,  # 평점 예측 모델 (기본 비활성화)
-        "enable_topic_modeling": False,     # 토픽 모델링 (기본 비활성화)
-        "enable_change_point_detection": False,  # 변화점 탐지 (기본 비활성화)
-        "shap_top_features": 5,            # SHAP 상위 특성 수 (줄임)
-        "topic_count": 5,                  # 토픽 개수 (줄임)
-        "min_topic_size": 10,              # 최소 토픽 크기 (늘림)
-        "change_point_penalty": 5          # 변화점 탐지 페널티 (줄임)
+        "enable_rating_prediction": False,  # 평점 예측 모델
+        "enable_topic_modeling": False,     # 토픽 모델링
+        "enable_change_point_detection": False,  # 변화점 탐지
+        "shap_top_features": 10,           # SHAP 상위 특성 수
+        "topic_count": 8,                  # 토픽 개수
+        "min_topic_size": 5,               # 최소 토픽 크기
+        "change_point_penalty": 10         # 변화점 탐지 페널티
     }
 }
 
