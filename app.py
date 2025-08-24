@@ -142,8 +142,42 @@ def start_analysis(session_id):
                     mention_count += df['내용'].str.contains(keyword, na=False).sum()
                 aspect_results[aspect] = mention_count
         
-        # 우선순위 계산 (간단한 버전)
+        # Aspect별 감정 분석
+        aspect_sentiment = {}
+        if '내용' in df.columns and '평점' in df.columns:
+            for aspect, keywords in aspect_keywords.items():
+                aspect_mentions = df[df['내용'].str.contains('|'.join(keywords), na=False)]
+                if len(aspect_mentions) > 0:
+                    positive_count = len(aspect_mentions[aspect_mentions['평점'] >= 8])
+                    negative_count = len(aspect_mentions[aspect_mentions['평점'] <= 6])
+                    neutral_count = len(aspect_mentions) - positive_count - negative_count
+                    
+                    aspect_sentiment[aspect] = {
+                        'total': len(aspect_mentions),
+                        'positive': positive_count,
+                        'negative': negative_count,
+                        'neutral': neutral_count,
+                        'positive_ratio': round((positive_count / len(aspect_mentions)) * 100, 1),
+                        'negative_ratio': round((negative_count / len(aspect_mentions)) * 100, 1),
+                        'neutral_ratio': round((neutral_count / len(aspect_mentions)) * 100, 1)
+                    }
+        
+        # 개선사항 우선순위 점수 계산
+        priority_scores = {}
         if aspect_results:
+            for aspect, mention_count in aspect_results.items():
+                if aspect in aspect_sentiment:
+                    # 부정 비율이 높을수록 높은 점수 (우선순위)
+                    negative_ratio = aspect_sentiment[aspect]['negative_ratio']
+                    mention_weight = min(mention_count / 10, 1.0)  # 언급 횟수 가중치
+                    priority_scores[aspect] = round(negative_ratio * mention_weight, 1)
+                else:
+                    priority_scores[aspect] = 0.0
+        
+        # 우선순위 계산 (개선된 버전)
+        if priority_scores:
+            top_aspect = max(priority_scores.items(), key=lambda x: x[1])[0]
+        elif aspect_results:
             top_aspect = max(aspect_results.items(), key=lambda x: x[1])[0]
         else:
             top_aspect = '분석 완료'
@@ -232,7 +266,20 @@ def start_analysis(session_id):
                 'pdf_report': None,
                 'pptx_summary': None
             },
-            'charts': chart_files if CHARTS_AVAILABLE else {}
+            'charts': chart_files if CHARTS_AVAILABLE else {},
+            'aspect_sentiment': aspect_sentiment,
+            'priority_scores': priority_scores,
+            'key_insights': {
+                'overall_sentiment': '긍정' if positive_ratio > negative_ratio else '부정' if negative_ratio > positive_ratio else '중립',
+                'main_strength': max(aspect_sentiment.items(), key=lambda x: x[1]['positive_ratio'])[0] if aspect_sentiment else '분석 불가',
+                'main_weakness': max(aspect_sentiment.items(), key=lambda x: x[1]['negative_ratio'])[0] if aspect_sentiment else '분석 불가',
+                'improvement_potential': round((negative_ratio / 100) * total_reviews, 0) if negative_ratio > 0 else 0
+            },
+            'strategic_recommendations': {
+                'immediate_action': top_aspect,
+                'long_term_focus': '고객 만족도 향상' if negative_ratio > 30 else '서비스 품질 유지',
+                'priority_level': '높음' if negative_ratio > 40 else '중간' if negative_ratio > 20 else '낮음'
+            }
         }
         
         logger.info(f"분석 완료: {session_id}")
@@ -387,7 +434,20 @@ def results(session_id):
                     'pdf_report': None,
                     'pptx_summary': None
                 },
-                'charts': chart_files if CHARTS_AVAILABLE else {}
+                'charts': chart_files if CHARTS_AVAILABLE else {},
+                'aspect_sentiment': aspect_sentiment,
+                'priority_scores': priority_scores,
+                'key_insights': {
+                    'overall_sentiment': '긍정' if positive_ratio > negative_ratio else '부정' if negative_ratio > positive_ratio else '중립',
+                    'main_strength': max(aspect_sentiment.items(), key=lambda x: x[1]['positive_ratio'])[0] if aspect_sentiment else '분석 불가',
+                    'main_weakness': max(aspect_sentiment.items(), key=lambda x: x[1]['negative_ratio'])[0] if aspect_sentiment else '분석 불가',
+                    'improvement_potential': round((negative_ratio / 100) * total_reviews, 0) if negative_ratio > 0 else 0
+                },
+                'strategic_recommendations': {
+                    'immediate_action': top_aspect,
+                    'long_term_focus': '고객 만족도 향상' if negative_ratio > 30 else '서비스 품질 유지',
+                    'priority_level': '높음' if negative_ratio > 40 else '중간' if negative_ratio > 20 else '낮음'
+                }
             },
             'analysis_results': {
                 'KPI': {'총_리뷰_수': total_reviews},

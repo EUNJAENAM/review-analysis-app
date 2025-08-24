@@ -84,12 +84,169 @@
                             </div>
                         </div>
                         
+                        <!-- 주요 인사이트 -->
                         <div class="row mt-3">
                             <div class="col-12">
-                                <h6>우선순위 분석</h6>
-                                <div class="alert alert-warning" role="alert">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>최우선 개선사항:</strong> {{ session_info.summary.top_priority }}
+                                <h6>주요 인사이트</h6>
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">전체 감정</h6>
+                                                <span class="badge {% if session_info.summary.key_insights.overall_sentiment == '긍정' %}bg-success{% elif session_info.summary.key_insights.overall_sentiment == '부정' %}bg-danger{% else %}bg-warning{% endif %}">
+                                                    {{ session_info.summary.key_insights.overall_sentiment }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card bg-success text-white">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">주요 강점</h6>
+                                                <small>{{ session_info.summary.key_insights.main_strength }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card bg-danger text-white">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">주요 약점</h6>
+                                                <small>{{ session_info.summary.key_insights.main_weakness }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 개선사항 우선순위 점수 -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>개선사항 우선순위 점수</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>항목</th>
+                                                <th>우선순위 점수</th>
+                                                <th>부정 비율</th>
+                                                <th>언급 횟수</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for aspect, score in session_info.summary.priority_scores.items() %}
+                                            <tr>
+                                                <td>{{ aspect }}</td>
+                                                <td>
+                                                    <div class="progress" style="height: 20px;">
+                                                        <div class="progress-bar bg-danger" style="width: {{ score }}%">{{ score }}</div>
+                                                    </div>
+                                                </td>
+                                                <td>{{ session_info.summary.aspect_sentiment[aspect].negative_ratio }}%</td>
+                                                <td>{{ session_info.summary.aspect_sentiment[aspect].total }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Aspect별 감정분포 -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>Aspect별 감정분포</h6>
+                                <div class="row">
+                                    {% for aspect, sentiment in session_info.summary.aspect_sentiment.items() %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">{{ aspect }}</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row text-center">
+                                                    <div class="col-4">
+                                                        <div class="text-success">
+                                                            <i class="fas fa-thumbs-up"></i>
+                                                            <div>{{ sentiment.positive_ratio }}%</div>
+                                                            <small>긍정</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="text-warning">
+                                                            <i class="fas fa-minus"></i>
+                                                            <div>{{ sentiment.neutral_ratio }}%</div>
+                                                            <small>중립</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="text-danger">
+                                                            <i class="fas fa-thumbs-down"></i>
+                                                            <div>{{ sentiment.negative_ratio }}%</div>
+                                                            <small>부정</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 전략적 제어 -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>전략적 제어</h6>
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card bg-primary text-white">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">즉시 조치</h6>
+                                                <small>{{ session_info.summary.strategic_recommendations.immediate_action }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card bg-info text-white">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">장기 집중</h6>
+                                                <small>{{ session_info.summary.strategic_recommendations.long_term_focus }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="card bg-warning text-dark">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">우선순위</h6>
+                                                <span class="badge {% if session_info.summary.strategic_recommendations.priority_level == '높음' %}bg-danger{% elif session_info.summary.strategic_recommendations.priority_level == '중간' %}bg-warning{% else %}bg-success{% endif %}">
+                                                    {{ session_info.summary.strategic_recommendations.priority_level }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 결론 및 향후 방향 -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>결론 및 향후 방향</h6>
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-chart-line me-2"></i>개선 잠재력</h6>
+                                    <p class="mb-2">약 {{ session_info.summary.key_insights.improvement_potential }}명의 고객 만족도 향상 가능</p>
+                                    
+                                    <h6><i class="fas fa-target me-2"></i>핵심 목표</h6>
+                                    <p class="mb-2">{{ session_info.summary.strategic_recommendations.immediate_action }} 분야 개선을 통한 고객 만족도 증대</p>
+                                    
+                                    <h6><i class="fas fa-road me-2"></i>실행 방안</h6>
+                                    <ul class="mb-0">
+                                        <li>고객 피드백 기반 개선 계획 수립</li>
+                                        <li>직원 교육 및 서비스 품질 향상</li>
+                                        <li>정기적인 만족도 모니터링 체계 구축</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
