@@ -120,6 +120,16 @@
                                         </div>
                                     </div>
                                     {% endif %}
+                                    {% if 'keywords' in session_info.summary.charts %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h6>부정 키워드</h6>
+                                                <img src="/api/plot/{{ session_id }}/keywords" class="img-fluid" alt="부정 키워드">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

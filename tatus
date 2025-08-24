@@ -1,0 +1,5 @@
+[33m86767de[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m 차트/그래프 기능 구현 및 Render 환경 최적화
+[33m5ab3da5[m[33m ([m[1;31morigin/main[m[33m)[m Fix image loading error: Remove chart images and provide text-based results only
+[33mb02a624[m Fix file path error: Remove download buttons and add proper error handling
+[33mcd50b4e[m Fix 502 error: Optimize dependencies and improve port binding
+[33m333531f[m Fix deployment issues: Remove ruptures dependency and disable advanced analysis

@@ -170,9 +170,9 @@ def start_analysis(session_id):
                     chart_files['sentiment'] = sentiment_chart
                 
                 # 연도별 트렌드 차트 (날짜 데이터가 있는 경우)
-                if '날짜' in df.columns:
+                if '작성일자' in df.columns:
                     try:
-                        df['날짜'] = pd.to_datetime(df['날짜'])
+                        df['날짜'] = pd.to_datetime(df['작성일자'])
                         df['연도'] = df['날짜'].dt.year
                         yearly_data = df.groupby('연도').agg({
                             '평점': ['count', 'mean']
@@ -184,6 +184,35 @@ def start_analysis(session_id):
                             chart_files['trend'] = trend_chart
                     except Exception as e:
                         logger.warning(f"연도별 트렌드 차트 생성 실패: {e}")
+                
+                # 부정 키워드 차트 (텍스트 데이터가 있는 경우)
+                if '내용' in df.columns:
+                    try:
+                        # 부정 키워드 분석
+                        negative_keywords = [
+                            '아쉽', '실망', '별로', '안좋', '나쁘', '불편', '문제', '결함', '고장',
+                            '부족', '떨어지', '낮', '안되', '못하', '싫', '짜증', '화나', '불쾌',
+                            '실종', '허', '늘어지', '떨어지', '낡', '오래', '노후', '지저분', '더럽',
+                            '차갑', '춥', '시끄럽', '소음', '비싸', '바가지', '불친절', '무시',
+                            '격양', '말문막힘', '아쉬워', '후회', '다시안갈', '추천안함'
+                        ]
+                        
+                        keyword_counts = []
+                        for keyword in negative_keywords:
+                            count = df['내용'].str.contains(keyword, na=False).sum()
+                            if count > 0:
+                                keyword_counts.append((keyword, count))
+                        
+                        # 상위 10개 키워드 선택
+                        keyword_counts.sort(key=lambda x: x[1], reverse=True)
+                        top_keywords = keyword_counts[:10]
+                        
+                        if top_keywords:
+                            keywords_chart = plotter.create_negative_keywords_bar(top_keywords)
+                            if keywords_chart:
+                                chart_files['keywords'] = keywords_chart
+                    except Exception as e:
+                        logger.warning(f"부정 키워드 차트 생성 실패: {e}")
                 
                 logger.info(f"차트 생성 완료: {list(chart_files.keys())}")
                 
@@ -293,9 +322,9 @@ def results(session_id):
                     chart_files['sentiment'] = sentiment_chart
                 
                 # 연도별 트렌드 차트 (날짜 데이터가 있는 경우)
-                if '날짜' in df.columns:
+                if '작성일자' in df.columns:
                     try:
-                        df['날짜'] = pd.to_datetime(df['날짜'])
+                        df['날짜'] = pd.to_datetime(df['작성일자'])
                         df['연도'] = df['날짜'].dt.year
                         yearly_data = df.groupby('연도').agg({
                             '평점': ['count', 'mean']
@@ -307,6 +336,35 @@ def results(session_id):
                             chart_files['trend'] = trend_chart
                     except Exception as e:
                         logger.warning(f"연도별 트렌드 차트 생성 실패: {e}")
+                
+                # 부정 키워드 차트 (텍스트 데이터가 있는 경우)
+                if '내용' in df.columns:
+                    try:
+                        # 부정 키워드 분석
+                        negative_keywords = [
+                            '아쉽', '실망', '별로', '안좋', '나쁘', '불편', '문제', '결함', '고장',
+                            '부족', '떨어지', '낮', '안되', '못하', '싫', '짜증', '화나', '불쾌',
+                            '실종', '허', '늘어지', '떨어지', '낡', '오래', '노후', '지저분', '더럽',
+                            '차갑', '춥', '시끄럽', '소음', '비싸', '바가지', '불친절', '무시',
+                            '격양', '말문막힘', '아쉬워', '후회', '다시안갈', '추천안함'
+                        ]
+                        
+                        keyword_counts = []
+                        for keyword in negative_keywords:
+                            count = df['내용'].str.contains(keyword, na=False).sum()
+                            if count > 0:
+                                keyword_counts.append((keyword, count))
+                        
+                        # 상위 10개 키워드 선택
+                        keyword_counts.sort(key=lambda x: x[1], reverse=True)
+                        top_keywords = keyword_counts[:10]
+                        
+                        if top_keywords:
+                            keywords_chart = plotter.create_negative_keywords_bar(top_keywords)
+                            if keywords_chart:
+                                chart_files['keywords'] = keywords_chart
+                    except Exception as e:
+                        logger.warning(f"부정 키워드 차트 생성 실패: {e}")
                 
                 logger.info(f"차트 생성 완료: {list(chart_files.keys())}")
                 
