@@ -115,37 +115,13 @@ def start_analysis(session_id):
         else:
             positive_ratio = negative_ratio = neutral_ratio = 0
         
-        # Aspect 분석 (간단한 키워드 매칭)
-        aspect_keywords = {
-            '청결': ['청결', '깨끗', '더럽', '지저분', '먼지', '바닥', '청소', '깔끔', '위생'],
-            '시설/온수': ['시설', '온수', '샤워', '온도', '따뜻', '차갑', '잠금장치', '리모델링', '노후', '낡'],
-            '직원응대': ['직원', '응대', '서비스', '친절', '불친절', '태도', '안내', '프론트'],
-            '가격': ['가격', '비싸', '저렴', '가성비', '요금', '비용', '패키지', '강정', '조식'],
-            '온천수': ['온천', '탄산', '온천수', '탕', '사우나', '찜질방', '목욕', '온천욕']
-        }
-        
-        # 텍스트 데이터가 있는 경우 Aspect 분석
-        aspect_results = {}
-        if '내용' in df.columns:
-            for aspect, keywords in aspect_keywords.items():
-                mention_count = 0
-                for keyword in keywords:
-                    mention_count += df['내용'].str.contains(keyword, na=False).sum()
-                aspect_results[aspect] = mention_count
-        
-        # 우선순위 계산 (간단한 버전)
-        if aspect_results:
-            top_aspect = max(aspect_results.items(), key=lambda x: x[1])[0]
-        else:
-            top_aspect = '분석 완료'
-        
         summary = {
             'total_reviews': total_reviews,
             'average_rating': round(average_rating, 2),
             'positive_ratio': round(positive_ratio, 1),
             'negative_ratio': round(negative_ratio, 1),
             'neutral_ratio': round(neutral_ratio, 1),
-            'top_priority': top_aspect,
+            'top_priority': '분석 완료',
             'data_period': '성공',
             'files': {
                 'html_report': None,
@@ -164,8 +140,6 @@ def start_analysis(session_id):
         
     except Exception as e:
         logger.error(f"분석 오류: {e}")
-        import traceback
-        logger.error(f"상세 오류: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/results/<session_id>')
@@ -195,30 +169,6 @@ def results(session_id):
         else:
             positive_ratio = negative_ratio = neutral_ratio = 0
         
-        # Aspect 분석 (간단한 키워드 매칭)
-        aspect_keywords = {
-            '청결': ['청결', '깨끗', '더럽', '지저분', '먼지', '바닥', '청소', '깔끔', '위생'],
-            '시설/온수': ['시설', '온수', '샤워', '온도', '따뜻', '차갑', '잠금장치', '리모델링', '노후', '낡'],
-            '직원응대': ['직원', '응대', '서비스', '친절', '불친절', '태도', '안내', '프론트'],
-            '가격': ['가격', '비싸', '저렴', '가성비', '요금', '비용', '패키지', '강정', '조식'],
-            '온천수': ['온천', '탄산', '온천수', '탕', '사우나', '찜질방', '목욕', '온천욕']
-        }
-        
-        # 텍스트 데이터가 있는 경우 Aspect 분석
-        aspect_results = {}
-        if '내용' in df.columns:
-            for aspect, keywords in aspect_keywords.items():
-                mention_count = 0
-                for keyword in keywords:
-                    mention_count += df['내용'].str.contains(keyword, na=False).sum()
-                aspect_results[aspect] = mention_count
-        
-        # 우선순위 계산 (간단한 버전)
-        if aspect_results:
-            top_aspect = max(aspect_results.items(), key=lambda x: x[1])[0]
-        else:
-            top_aspect = '분석 완료'
-        
         session_info = {
             'session_id': session_id,
             'created_at': datetime.now().isoformat(),
@@ -228,7 +178,7 @@ def results(session_id):
                 'positive_ratio': positive_ratio,
                 'negative_ratio': negative_ratio,
                 'neutral_ratio': neutral_ratio,
-                'top_priority': top_aspect,
+                'top_priority': '분석 완료',
                 'data_period': '성공',
                 'files': {
                     'html_report': None,
@@ -249,27 +199,8 @@ def results(session_id):
         
     except Exception as e:
         logger.error(f"결과 페이지 오류: {e}")
-        import traceback
-        logger.error(f"상세 오류: {traceback.format_exc()}")
         flash('결과를 불러오는 중 오류가 발생했습니다.', 'error')
         return redirect(url_for('index'))
-
-@app.route('/download/<session_id>/<file_type>')
-def download_file(session_id, file_type):
-    """파일 다운로드 (간단 버전에서는 지원하지 않음)"""
-    try:
-        # 현재 간소화된 버전에서는 리포트 파일이 생성되지 않음
-        if file_type in ['html', 'pdf', 'pptx']:
-            flash(f'현재 버전에서는 {file_type.upper()} 리포트 다운로드를 지원하지 않습니다. 결과 페이지에서 직접 확인해주세요.', 'info')
-            return redirect(url_for('results', session_id=session_id))
-        else:
-            flash('지원하지 않는 파일 형식입니다.', 'error')
-            return redirect(url_for('results', session_id=session_id))
-            
-    except Exception as e:
-        logger.error(f"파일 다운로드 오류: {e}")
-        flash('파일 다운로드 중 오류가 발생했습니다.', 'error')
-        return redirect(url_for('results', session_id=session_id))
 
 @app.errorhandler(413)
 def too_large(e):
