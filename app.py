@@ -9,6 +9,15 @@ from pathlib import Path
 from flask import Flask, render_template, request, jsonify, send_file, flash, redirect, url_for
 import pandas as pd
 
+# 차트 생성 모듈 import
+try:
+    from src.plots import PlotGenerator
+    from src.config import FIGURES_DIR
+    CHARTS_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"차트 모듈 import 실패: {e}")
+    CHARTS_AVAILABLE = False
+
 # Flask 앱 초기화
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'
@@ -139,6 +148,48 @@ def start_analysis(session_id):
         else:
             top_aspect = '분석 완료'
         
+        # 차트 생성 (가능한 경우)
+        chart_files = {}
+        if CHARTS_AVAILABLE:
+            try:
+                # 출력 디렉토리 설정
+                output_dir = session_folder / 'charts'
+                output_dir.mkdir(exist_ok=True)
+                
+                # PlotGenerator 초기화
+                plotter = PlotGenerator(output_dir)
+                
+                # 감정 분포 파이 차트 생성
+                sentiment_data = {
+                    '긍정': positive,
+                    '부정': negative,
+                    '중립': neutral
+                }
+                sentiment_chart = plotter.create_sentiment_pie_chart(sentiment_data)
+                if sentiment_chart:
+                    chart_files['sentiment'] = sentiment_chart
+                
+                # 연도별 트렌드 차트 (날짜 데이터가 있는 경우)
+                if '날짜' in df.columns:
+                    try:
+                        df['날짜'] = pd.to_datetime(df['날짜'])
+                        df['연도'] = df['날짜'].dt.year
+                        yearly_data = df.groupby('연도').agg({
+                            '평점': ['count', 'mean']
+                        }).round(2)
+                        yearly_data.columns = ['리뷰_수', '평균_평점']
+                        
+                        trend_chart = plotter.create_yearly_trend_plot(yearly_data)
+                        if trend_chart:
+                            chart_files['trend'] = trend_chart
+                    except Exception as e:
+                        logger.warning(f"연도별 트렌드 차트 생성 실패: {e}")
+                
+                logger.info(f"차트 생성 완료: {list(chart_files.keys())}")
+                
+            except Exception as e:
+                logger.error(f"차트 생성 중 오류: {e}")
+        
         summary = {
             'total_reviews': total_reviews,
             'average_rating': round(average_rating, 2),
@@ -151,7 +202,8 @@ def start_analysis(session_id):
                 'html_report': None,
                 'pdf_report': None,
                 'pptx_summary': None
-            }
+            },
+            'charts': chart_files if CHARTS_AVAILABLE else {}
         }
         
         logger.info(f"분석 완료: {session_id}")
@@ -219,6 +271,48 @@ def results(session_id):
         else:
             top_aspect = '분석 완료'
         
+        # 차트 생성 (가능한 경우)
+        chart_files = {}
+        if CHARTS_AVAILABLE:
+            try:
+                # 출력 디렉토리 설정
+                output_dir = session_folder / 'charts'
+                output_dir.mkdir(exist_ok=True)
+                
+                # PlotGenerator 초기화
+                plotter = PlotGenerator(output_dir)
+                
+                # 감정 분포 파이 차트 생성
+                sentiment_data = {
+                    '긍정': positive,
+                    '부정': negative,
+                    '중립': neutral
+                }
+                sentiment_chart = plotter.create_sentiment_pie_chart(sentiment_data)
+                if sentiment_chart:
+                    chart_files['sentiment'] = sentiment_chart
+                
+                # 연도별 트렌드 차트 (날짜 데이터가 있는 경우)
+                if '날짜' in df.columns:
+                    try:
+                        df['날짜'] = pd.to_datetime(df['날짜'])
+                        df['연도'] = df['날짜'].dt.year
+                        yearly_data = df.groupby('연도').agg({
+                            '평점': ['count', 'mean']
+                        }).round(2)
+                        yearly_data.columns = ['리뷰_수', '평균_평점']
+                        
+                        trend_chart = plotter.create_yearly_trend_plot(yearly_data)
+                        if trend_chart:
+                            chart_files['trend'] = trend_chart
+                    except Exception as e:
+                        logger.warning(f"연도별 트렌드 차트 생성 실패: {e}")
+                
+                logger.info(f"차트 생성 완료: {list(chart_files.keys())}")
+                
+            except Exception as e:
+                logger.error(f"차트 생성 중 오류: {e}")
+        
         session_info = {
             'session_id': session_id,
             'created_at': datetime.now().isoformat(),
@@ -234,7 +328,8 @@ def results(session_id):
                     'html_report': None,
                     'pdf_report': None,
                     'pptx_summary': None
-                }
+                },
+                'charts': chart_files if CHARTS_AVAILABLE else {}
             },
             'analysis_results': {
                 'KPI': {'총_리뷰_수': total_reviews},
@@ -256,12 +351,30 @@ def results(session_id):
 
 @app.route('/api/plot/<session_id>/<plot_name>')
 def get_plot(session_id, plot_name):
-    """그래프 이미지 제공 (간단 버전에서는 지원하지 않음)"""
+    """그래프 이미지 제공"""
     try:
-        # 현재 간소화된 버전에서는 이미지가 생성되지 않음
-        return jsonify({
-            'error': '현재 버전에서는 이미지 차트를 지원하지 않습니다. 분석 결과는 텍스트로만 제공됩니다.'
-        }), 404
+        session_folder = UPLOAD_FOLDER / session_id
+        charts_folder = session_folder / 'charts'
+        
+        # 차트 파일 경로 설정
+        chart_files = {
+            'sentiment': 'sentiment_distribution.png',
+            'trend': 'yearly_trend.png',
+            'keywords': 'negative_keywords.png'
+        }
+        
+        if plot_name not in chart_files:
+            return jsonify({'error': '지원하지 않는 차트 유형입니다.'}), 404
+        
+        chart_file = charts_folder / chart_files[plot_name]
+        
+        if not chart_file.exists():
+            return jsonify({
+                'error': f'차트 파일을 찾을 수 없습니다: {plot_name}',
+                'available': list(chart_files.keys())
+            }), 404
+        
+        return send_file(chart_file, mimetype='image/png')
         
     except Exception as e:
         logger.error(f"이미지 제공 오류: {e}")

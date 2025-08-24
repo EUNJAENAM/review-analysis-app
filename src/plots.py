@@ -70,17 +70,16 @@ class PlotGenerator:
         # matplotlib 폰트 설정 초기화
         plt.rcdefaults()
         
-        # Windows 환경에서 사용 가능한 한글 폰트들
+        # Render/Linux 서버 환경에서 사용 가능한 한글 폰트들
         korean_fonts = [
-            "Malgun Gothic",  # 맑은 고딕
-            "NanumGothic",    # 나눔고딕
-            "NanumBarunGothic", # 나눔바른고딕
-            "Dotum",          # 돋움
-            "Gulim",          # 굴림
-            "Batang",         # 바탕
-            "Gungsuh",        # 궁서
+            "DejaVu Sans",    # Linux 기본 폰트
+            "Liberation Sans", # Linux 기본 폰트
+            "Ubuntu",         # Ubuntu 기본 폰트
+            "Noto Sans CJK KR", # Google Noto 폰트 (한글 지원)
+            "NanumGothic",    # 나눔고딕 (설치된 경우)
+            "NanumBarunGothic", # 나눔바른고딕 (설치된 경우)
             "Arial Unicode MS", # Arial Unicode
-            "DejaVu Sans"     # 기본 폰트
+            "sans-serif"      # 기본 sans-serif
         ]
         
         # 시스템에 설치된 폰트 확인
@@ -112,84 +111,117 @@ class PlotGenerator:
             except Exception as e:
                 logger.warning(f"폰트 등록 실패: {e}")
         else:
-            # 기본 설정 사용
+            # 기본 설정 사용 (Render 환경 최적화)
+            plt.rcParams['font.family'] = 'sans-serif'
+            plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Liberation Sans', 'Ubuntu']
+            plt.rcParams['axes.unicode_minus'] = False
+            self.font_prop = None
+            logger.warning("사용 가능한 한글 폰트를 찾을 수 없습니다. 기본 폰트를 사용합니다.")
+            
+        # 폰트 설정이 실패해도 그래프는 생성되도록 안전장치
+        try:
+            # 테스트용 텍스트로 폰트 확인
+            test_fig, test_ax = plt.subplots(figsize=(1, 1))
+            test_ax.text(0.5, 0.5, '테스트', fontsize=12)
+            plt.close(test_fig)
+            logger.info("폰트 설정 테스트 성공")
+        except Exception as e:
+            logger.warning(f"폰트 설정 테스트 실패, 기본 설정으로 재설정: {e}")
+            plt.rcdefaults()
             plt.rcParams['font.family'] = 'sans-serif'
             plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
             plt.rcParams['axes.unicode_minus'] = False
             self.font_prop = None
-            logger.warning("사용 가능한 한글 폰트를 찾을 수 없습니다. 기본 폰트를 사용합니다.")
     
     def create_yearly_trend_plot(self, yearly_data: pd.DataFrame) -> str:
         """연도별 트렌드 그래프를 생성합니다."""
-        logger.info("연도별 트렌드 그래프 생성 시작")
-        
-        fig, ax1 = plt.subplots(figsize=self.plot_config['figure_size'])
-        
-        # 막대 그래프 (리뷰 수)
-        bars = ax1.bar(yearly_data.index, yearly_data['리뷰_수'], 
-                      color=self.colors['primary'], alpha=0.7, label='리뷰 수')
-        ax1.set_xlabel('연도', fontproperties=self.font_prop)
-        ax1.set_ylabel('리뷰 수', color=self.colors['primary'], fontproperties=self.font_prop)
-        ax1.tick_params(axis='y', labelcolor=self.colors['primary'])
-        
-        # 라인 그래프 (평균 평점) - twin axis
-        ax2 = ax1.twinx()
-        line = ax2.plot(yearly_data.index, yearly_data['평균_평점'], 
-                       color=self.colors['negative'], marker='o', linewidth=2, 
-                       label='평균 평점')
-        ax2.set_ylabel('평균 평점', color=self.colors['negative'], fontproperties=self.font_prop)
-        ax2.tick_params(axis='y', labelcolor=self.colors['negative'])
-        ax2.set_ylim(0, 10)
-        
-        # 제목 및 범례
-        plt.title('연도별 리뷰 수 및 평균 평점 트렌드', fontsize=18, pad=20, fontproperties=self.font_prop)
-        
-        # 범례 통합
-        lines1, labels1 = ax1.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left', prop=self.font_prop)
-        
-        plt.tight_layout()
-        
-        # 저장
-        filename = self.figures_dir / 'yearly_trend.png'
-        plt.savefig(filename, dpi=self.plot_config['dpi'], bbox_inches='tight')
-        plt.close()
-        
-        logger.info(f"연도별 트렌드 그래프 저장 완료: {filename}")
-        return str(filename)
+        try:
+            logger.info("연도별 트렌드 그래프 생성 시작")
+            
+            # 출력 디렉토리 생성
+            self.figures_dir.mkdir(parents=True, exist_ok=True)
+            
+            fig, ax1 = plt.subplots(figsize=self.plot_config['figure_size'])
+            
+            # 막대 그래프 (리뷰 수)
+            bars = ax1.bar(yearly_data.index, yearly_data['리뷰_수'], 
+                          color=self.colors['primary'], alpha=0.7, label='리뷰 수')
+            ax1.set_xlabel('연도', fontproperties=self.font_prop)
+            ax1.set_ylabel('리뷰 수', color=self.colors['primary'], fontproperties=self.font_prop)
+            ax1.tick_params(axis='y', labelcolor=self.colors['primary'])
+            
+            # 라인 그래프 (평균 평점) - twin axis
+            ax2 = ax1.twinx()
+            line = ax2.plot(yearly_data.index, yearly_data['평균_평점'], 
+                           color=self.colors['negative'], marker='o', linewidth=2, 
+                           label='평균 평점')
+            ax2.set_ylabel('평균 평점', color=self.colors['negative'], fontproperties=self.font_prop)
+            ax2.tick_params(axis='y', labelcolor=self.colors['negative'])
+            ax2.set_ylim(0, 10)
+            
+            # 제목 및 범례
+            plt.title('연도별 리뷰 수 및 평균 평점 트렌드', fontsize=18, pad=20, fontproperties=self.font_prop)
+            
+            # 범례 통합
+            lines1, labels1 = ax1.get_legend_handles_labels()
+            lines2, labels2 = ax2.get_legend_handles_labels()
+            ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left', prop=self.font_prop)
+            
+            plt.tight_layout()
+            
+            # 저장
+            filename = self.figures_dir / 'yearly_trend.png'
+            plt.savefig(filename, dpi=self.plot_config['dpi'], bbox_inches='tight')
+            plt.close()
+            
+            logger.info(f"연도별 트렌드 그래프 저장 완료: {filename}")
+            return str(filename)
+            
+        except Exception as e:
+            logger.error(f"연도별 트렌드 그래프 생성 실패: {e}")
+            plt.close('all')  # 모든 그래프 창 닫기
+            return ""
     
     def create_sentiment_pie_chart(self, sentiment_data: Dict[str, int]) -> str:
         """감정 분포 파이 차트를 생성합니다."""
-        logger.info("감정 분포 파이 차트 생성 시작")
-        
-        fig, ax = plt.subplots(figsize=(10, 8))
-        
-        # 데이터 준비 - 한글 라벨 사용
-        labels = list(sentiment_data.keys())
-        sizes = list(sentiment_data.values())
-        colors_list = [self.colors['positive'], self.colors['negative'], self.colors['neutral']]
-        
-        # 파이 차트 생성 (크기를 90%로 줄임)
-        wedges, texts, autotexts = ax.pie(sizes, labels=labels, colors=colors_list, 
-                                         autopct='%1.1f%%', startangle=90, textprops={'fontproperties': self.font_prop},
-                                         radius=0.9)
-        
-        # 텍스트 스타일 설정
-        for autotext in autotexts:
-            autotext.set_color('white')
-            autotext.set_fontweight('bold')
-        
-        plt.title('감정 분포', fontsize=18, pad=20, fontproperties=self.font_prop)
-        plt.axis('equal')
-        
-        # 저장
-        filename = self.figures_dir / 'sentiment_distribution.png'
-        plt.savefig(filename, dpi=self.plot_config['dpi'], bbox_inches='tight')
-        plt.close()
-        
-        logger.info(f"감정 분포 파이 차트 저장 완료: {filename}")
-        return str(filename)
+        try:
+            logger.info("감정 분포 파이 차트 생성 시작")
+            
+            # 출력 디렉토리 생성
+            self.figures_dir.mkdir(parents=True, exist_ok=True)
+            
+            fig, ax = plt.subplots(figsize=(10, 8))
+            
+            # 데이터 준비 - 한글 라벨 사용
+            labels = list(sentiment_data.keys())
+            sizes = list(sentiment_data.values())
+            colors_list = [self.colors['positive'], self.colors['negative'], self.colors['neutral']]
+            
+            # 파이 차트 생성 (크기를 90%로 줄임)
+            wedges, texts, autotexts = ax.pie(sizes, labels=labels, colors=colors_list, 
+                                             autopct='%1.1f%%', startangle=90, textprops={'fontproperties': self.font_prop},
+                                             radius=0.9)
+            
+            # 텍스트 스타일 설정
+            for autotext in autotexts:
+                autotext.set_color('white')
+                autotext.set_fontweight('bold')
+            
+            plt.title('감정 분포', fontsize=18, pad=20, fontproperties=self.font_prop)
+            plt.axis('equal')
+            
+            # 저장
+            filename = self.figures_dir / 'sentiment_distribution.png'
+            plt.savefig(filename, dpi=self.plot_config['dpi'], bbox_inches='tight')
+            plt.close()
+            
+            logger.info(f"감정 분포 파이 차트 저장 완료: {filename}")
+            return str(filename)
+            
+        except Exception as e:
+            logger.error(f"감정 분포 파이 차트 생성 실패: {e}")
+            plt.close('all')  # 모든 그래프 창 닫기
+            return ""
     
     def create_negative_keywords_bar(self, keywords: List[Tuple[str, int]]) -> str:
         """부정 키워드 상위 N개 막대 그래프를 생성합니다."""

@@ -94,13 +94,43 @@
                             </div>
                         </div>
                         
-                        <!-- 이미지 차트 섹션 제거 -->
+                        <!-- 차트 섹션 -->
+                        {% if session_info.summary.charts %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>시각화 차트</h6>
+                                <div class="row">
+                                    {% if 'sentiment' in session_info.summary.charts %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h6>감정 분포</h6>
+                                                <img src="/api/plot/{{ session_id }}/sentiment" class="img-fluid" alt="감정 분포">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% if 'trend' in session_info.summary.charts %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h6>연도별 트렌드</h6>
+                                                <img src="/api/plot/{{ session_id }}/trend" class="img-fluid" alt="연도별 트렌드">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
                         <div class="alert alert-info mt-3" role="alert">
                             <i class="fas fa-info-circle me-2"></i>
-                            <strong>현재 버전 안내:</strong> 
-                            이 버전에서는 분석 결과를 텍스트로만 제공합니다. 
-                            차트와 그래프는 향후 업데이트에서 제공될 예정입니다.
+                            <strong>차트 생성 안내:</strong> 
+                            차트 생성 중 오류가 발생했거나 데이터가 부족합니다. 
+                            텍스트 분석 결과를 참고해주세요.
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

@@ -2,8 +2,13 @@
 오색그린야드호텔 리뷰 분석 프로젝트 설정 파일
 """
 import os
+import matplotlib
 from pathlib import Path
 from typing import Dict, List, Any
+
+# matplotlib 백엔드 설정 (서버 환경용)
+# Render나 다른 서버 환경에서 이미지 생성이 가능하도록 설정
+matplotlib.use('Agg')  # GUI 없이 이미지 파일만 생성하는 백엔드
 
 # 프로젝트 루트 경로
 PROJECT_ROOT = Path(__file__).parent.parent
