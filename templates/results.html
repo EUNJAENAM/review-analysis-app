@@ -103,7 +103,7 @@
                                         <div class="card bg-success text-white">
                                             <div class="card-body text-center">
                                                 <h6 class="card-title">주요 강점</h6>
-                                                <small>{{ session_info.summary.key_insights.main_strength }}</small>
+                                                <small>{{ session_info.summary.key_insights.main_strength if session_info.summary.key_insights.main_strength != '분석 불가' else '데이터 부족' }}</small>
                                             </div>
                                         </div>
                                     </div>
@@ -111,7 +111,7 @@
                                         <div class="card bg-danger text-white">
                                             <div class="card-body text-center">
                                                 <h6 class="card-title">주요 약점</h6>
-                                                <small>{{ session_info.summary.key_insights.main_weakness }}</small>
+                                                <small>{{ session_info.summary.key_insights.main_weakness if session_info.summary.key_insights.main_weakness != '분석 불가' else '데이터 부족' }}</small>
                                             </div>
                                         </div>
                                     </div>
@@ -134,18 +134,24 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for aspect, score in session_info.summary.priority_scores.items() %}
-                                            <tr>
-                                                <td>{{ aspect }}</td>
-                                                <td>
-                                                    <div class="progress" style="height: 20px;">
-                                                        <div class="progress-bar bg-danger" style="width: {{ score }}%">{{ score }}</div>
-                                                    </div>
-                                                </td>
-                                                <td>{{ session_info.summary.aspect_sentiment[aspect].negative_ratio }}%</td>
-                                                <td>{{ session_info.summary.aspect_sentiment[aspect].total }}</td>
-                                            </tr>
-                                            {% endfor %}
+                                            {% if session_info.summary.priority_scores %}
+                                                {% for aspect, score in session_info.summary.priority_scores.items() %}
+                                                <tr>
+                                                    <td>{{ aspect }}</td>
+                                                    <td>
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar bg-danger" style="width: {{ score }}%">{{ score }}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td>{{ session_info.summary.aspect_sentiment[aspect].negative_ratio }}%</td>
+                                                    <td>{{ session_info.summary.aspect_sentiment[aspect].total }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="4" class="text-center text-muted">분석 데이터가 부족합니다.</td>
+                                                </tr>
+                                            {% endif %}
                                         </tbody>
                                     </table>
                                 </div>
@@ -157,40 +163,49 @@
                             <div class="col-12">
                                 <h6>Aspect별 감정분포</h6>
                                 <div class="row">
-                                    {% for aspect, sentiment in session_info.summary.aspect_sentiment.items() %}
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card">
-                                            <div class="card-header">
-                                                <h6 class="mb-0">{{ aspect }}</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="row text-center">
-                                                    <div class="col-4">
-                                                        <div class="text-success">
-                                                            <i class="fas fa-thumbs-up"></i>
-                                                            <div>{{ sentiment.positive_ratio }}%</div>
-                                                            <small>긍정</small>
+                                    {% if session_info.summary.aspect_sentiment %}
+                                        {% for aspect, sentiment in session_info.summary.aspect_sentiment.items() %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">{{ aspect }}</h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row text-center">
+                                                        <div class="col-4">
+                                                            <div class="text-success">
+                                                                <i class="fas fa-thumbs-up"></i>
+                                                                <div>{{ sentiment.positive_ratio }}%</div>
+                                                                <small>긍정</small>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <div class="text-warning">
-                                                            <i class="fas fa-minus"></i>
-                                                            <div>{{ sentiment.neutral_ratio }}%</div>
-                                                            <small>중립</small>
+                                                        <div class="col-4">
+                                                            <div class="text-warning">
+                                                                <i class="fas fa-minus"></i>
+                                                                <div>{{ sentiment.neutral_ratio }}%</div>
+                                                                <small>중립</small>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <div class="text-danger">
-                                                            <i class="fas fa-thumbs-down"></i>
-                                                            <div>{{ sentiment.negative_ratio }}%</div>
-                                                            <small>부정</small>
+                                                        <div class="col-4">
+                                                            <div class="text-danger">
+                                                                <i class="fas fa-thumbs-down"></i>
+                                                                <div>{{ sentiment.negative_ratio }}%</div>
+                                                                <small>부정</small>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    {% endfor %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="col-12">
+                                            <div class="alert alert-info text-center">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                Aspect별 감정 분석을 위한 데이터가 부족합니다.
+                                            </div>
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
