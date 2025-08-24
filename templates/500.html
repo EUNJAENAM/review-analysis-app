@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}서버 오류 - 오색그린야드호텔 리뷰 분석{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <div class="card">
+            <div class="card-body">
+                <i class="fas fa-bug fa-5x text-danger mb-4"></i>
+                <h2 class="mb-3">500</h2>
+                <h4 class="mb-3">서버 오류가 발생했습니다</h4>
+                <p class="text-muted mb-4">
+                    서버에서 예상치 못한 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                </p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>
+                    홈으로 돌아가기
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

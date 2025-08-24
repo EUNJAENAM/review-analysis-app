@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}분석 결과 - 오색그린야드호텔 리뷰 분석{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">
+                <i class="fas fa-chart-line me-2 text-primary"></i>
+                분석 결과
+            </h2>
+            <div>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-home me-2"></i>새로운 분석
+                </a>
+                <a href="/download/{{ session_id }}/html" class="btn btn-success me-2">
+                    <i class="fas fa-download me-2"></i>리포트 다운로드
+                </a>
+                <a href="/download/{{ session_id }}/pdf" class="btn btn-danger">
+                    <i class="fas fa-file-pdf me-2"></i>PDF 다운로드
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="kpi-card">
+                    <h3 class="mb-2">{{ session_info.summary.total_reviews }}</h3>
+                    <p class="mb-0">총 리뷰 수</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="kpi-card">
+                    <h3 class="mb-2">{{ "%.2f"|format(session_info.summary.average_rating) }}</h3>
+                    <p class="mb-0">평균 평점</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="kpi-card">
+                    <h3 class="mb-2">{{ "%.2f"|format(session_info.summary.positive_ratio) }}%</h3>
+                    <p class="mb-0">긍정 비율</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="kpi-card">
+                    <h3 class="mb-2">{{ session_info.summary.top_priority }}</h3>
+                    <p class="mb-0">최우선 개선사항</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Results -->
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- Charts Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            주요 차트
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6>연도별 트렌드</h6>
+                                <img src="/api/plot/{{ session_id }}/yearly_trend" class="img-fluid" alt="연도별 트렌드">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>감정 분포</h6>
+                                <img src="/api/plot/{{ session_id }}/sentiment_distribution" class="img-fluid" alt="감정 분포">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>부정 키워드 TOP 10</h6>
+                                <img src="/api/plot/{{ session_id }}/negative_keywords" class="img-fluid" alt="부정 키워드">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>Aspect별 감정 분포</h6>
+                                <img src="/api/plot/{{ session_id }}/aspect_sentiment" class="img-fluid" alt="Aspect별 감정">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Analysis -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-alt me-2"></i>
+                            상세 분석 결과
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>감정 분석</h6>
+                                <ul class="list-unstyled">
+                                    <li><strong>긍정:</strong> {{ "%.2f"|format(session_info.summary.positive_ratio) }}%</li>
+                                    <li><strong>부정:</strong> {{ "%.2f"|format(session_info.summary.negative_ratio) }}%</li>
+                                    <li><strong>중립:</strong> {{ "%.2f"|format(session_info.summary.neutral_ratio) }}%</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>데이터 기간</h6>
+                                <p>{{ session_info.summary.data_period }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Download Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-download me-2"></i>
+                            리포트 다운로드
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            {% if session_info.summary.files.html_report %}
+                            <a href="/download/{{ session_id }}/html" class="btn btn-outline-primary">
+                                <i class="fas fa-file-code me-2"></i>
+                                HTML 리포트
+                            </a>
+                            {% endif %}
+                            
+                            {% if session_info.summary.files.pdf_report %}
+                            <a href="/download/{{ session_id }}/pdf" class="btn btn-outline-danger">
+                                <i class="fas fa-file-pdf me-2"></i>
+                                PDF 리포트
+                            </a>
+                            {% endif %}
+                            
+                            {% if session_info.summary.files.pptx_summary %}
+                            <a href="/download/{{ session_id }}/pptx" class="btn btn-outline-success">
+                                <i class="fas fa-file-powerpoint me-2"></i>
+                                PPTX 요약
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority Analysis -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            개선 우선순위
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if session_info.analysis_results.우선순위.상위_3개 %}
+                        <div class="list-group list-group-flush">
+                            {% for item in session_info.analysis_results.우선순위.상위_3개 %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>{{ item.Aspect }}</span>
+                                <span class="badge bg-primary rounded-pill">{{ "%.2f"|format(item.우선순위_점수) }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">우선순위 데이터가 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Session Info -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            분석 정보
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <small class="text-muted">
+                            <strong>세션 ID:</strong><br>
+                            <code>{{ session_id }}</code><br><br>
+                            <strong>생성 시간:</strong><br>
+                            {{ session_info.created_at[:19].replace('T', ' ') }}<br><br>
+                            <strong>분석 옵션:</strong><br>
+                            고급 분석: {{ '활성화' if session_info.analysis_results.고급분석 else '비활성화' }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Charts -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-area me-2"></i>
+                            추가 차트
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6>우선순위 점수</h6>
+                                <img src="/api/plot/{{ session_id }}/priority_scores" class="img-fluid" alt="우선순위 점수">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>분기별 트렌드</h6>
+                                <img src="/api/plot/{{ session_id }}/quarterly_trend" class="img-fluid" alt="분기별 트렌드">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>세그먼트 분석</h6>
+                                <img src="/api/plot/{{ session_id }}/segment_analysis" class="img-fluid" alt="세그먼트 분석">
+                            </div>
+                            {% if session_info.analysis_results.고급분석 %}
+                            <div class="col-md-6 mb-3">
+                                <h6>SHAP 특성 중요도</h6>
+                                <img src="/api/plot/{{ session_id }}/shap_feature_importance" class="img-fluid" alt="SHAP 특성 중요도">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>모델 성능 비교</h6>
+                                <img src="/api/plot/{{ session_id }}/model_performance" class="img-fluid" alt="모델 성능 비교">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>토픽 분포</h6>
+                                <img src="/api/plot/{{ session_id }}/topic_distribution" class="img-fluid" alt="토픽 분포">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6>변화점 탐지</h6>
+                                <img src="/api/plot/{{ session_id }}/change_point_detection" class="img-fluid" alt="변화점 탐지">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer with Company Name -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="text-end">
+                <small class="text-muted">
+                    <strong>(주)파로스</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 이미지 로드 실패 시 처리
+    $('img').on('error', function() {
+        $(this).replaceWith('<div class="alert alert-warning">이미지를 불러올 수 없습니다.</div>');
+    });
+});
+</script>
+{% endblock %}

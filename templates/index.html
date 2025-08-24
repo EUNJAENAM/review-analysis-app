@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}홈 - 오색그린야드호텔 리뷰 분석{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Hero Section -->
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary mb-3">
+                <i class="fas fa-chart-line me-3"></i>
+                오색그린야드호텔 리뷰 분석
+            </h1>
+            <p class="lead text-muted">
+                고객 리뷰 데이터를 업로드하고 AI 기반 분석을 통해 호텔 성과를 종합적으로 진단해보세요
+            </p>
+        </div>
+
+        <!-- Features -->
+        <div class="row mb-5">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-upload fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">간편 업로드</h5>
+                        <p class="card-text">CSV 파일을 드래그 앤 드롭으로 간편하게 업로드하세요</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">AI 분석</h5>
+                        <p class="card-text">8단계 구조의 종합적인 분석으로 인사이트를 도출합니다</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-chart-bar fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">시각화</h5>
+                        <p class="card-text">11종류의 그래프와 리포트로 결과를 한눈에 확인하세요</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-upload me-2"></i>
+                    CSV 파일 업로드
+                </h4>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+                    <div class="mb-4">
+                        <label for="file" class="form-label">리뷰 데이터 CSV 파일 선택</label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('file').click()">
+                                <i class="fas fa-folder-open"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            <strong>필수 컬럼:</strong> 제목, 내용, 평점, 작성일자, 평가, 이용자, 구분<br>
+                            <strong>파일 크기:</strong> 최대 16MB
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enable_advanced" name="enable_advanced" value="true">
+                            <label class="form-check-label" for="enable_advanced">
+                                <strong>고급 분석 활성화</strong>
+                                <small class="text-muted d-block">
+                                    평점 예측 모델, 토픽 모델링, 변화점 탐지 등 고급 분석 기능을 포함합니다
+                                </small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="uploadBtn">
+                            <i class="fas fa-rocket me-2"></i>
+                            분석 시작
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- CSV Format Guide -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    CSV 파일 형식 가이드
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>컬럼명</th>
+                                <th>설명</th>
+                                <th>예시</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>제목</code></td>
+                                <td>리뷰 제목</td>
+                                <td>좋은 호텔이에요</td>
+                            </tr>
+                            <tr>
+                                <td><code>내용</code></td>
+                                <td>리뷰 본문 내용</td>
+                                <td>시설이 깔끔하고 직원들이 친절해요</td>
+                            </tr>
+                            <tr>
+                                <td><code>평점</code></td>
+                                <td>평점 (1-10점)</td>
+                                <td>8</td>
+                            </tr>
+                            <tr>
+                                <td><code>작성일자</code></td>
+                                <td>리뷰 작성일 (YYYY-MM-DD)</td>
+                                <td>2025-01-15</td>
+                            </tr>
+                            <tr>
+                                <td><code>평가</code></td>
+                                <td>간단한 평가</td>
+                                <td>위치 좋아요</td>
+                            </tr>
+                            <tr>
+                                <td><code>이용자</code></td>
+                                <td>이용자 정보</td>
+                                <td>user*** 2025.01.15</td>
+                            </tr>
+                            <tr>
+                                <td><code>구분</code></td>
+                                <td>이용 목적</td>
+                                <td>/ 가족</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Features -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    분석 기능
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-chart-pie me-2"></i>기본 분석</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>핵심 성과지표 (KPI)</li>
+                            <li><i class="fas fa-check text-success me-2"></i>연도별/분기별 트렌드</li>
+                            <li><i class="fas fa-check text-success me-2"></i>감정 분석 (긍정/부정/중립)</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Aspect별 분석 (청결, 시설, 직원응대 등)</li>
+                            <li><i class="fas fa-check text-success me-2"></i>부정 키워드 추출</li>
+                            <li><i class="fas fa-check text-success me-2"></i>개선사항 우선순위</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-brain me-2"></i>고급 분석</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>평점 예측 모델</li>
+                            <li><i class="fas fa-check text-success me-2"></i>SHAP 특성 중요도</li>
+                            <li><i class="fas fa-check text-success me-2"></i>토픽 모델링</li>
+                            <li><i class="fas fa-check text-success me-2"></i>변화점 탐지</li>
+                            <li><i class="fas fa-check text-success me-2"></i>세그먼트 분석</li>
+                            <li><i class="fas fa-check text-success me-2"></i>전략적 제언</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 파일 선택 시 파일명 표시
+    $('#file').change(function() {
+        var fileName = $(this).val().split('\\').pop();
+        if (fileName) {
+            $(this).next('.input-group-text').text(fileName);
+        }
+    });
+
+    // 폼 제출 시 로딩 상태 표시
+    $('#uploadForm').submit(function() {
+        $('#uploadBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>업로드 중...');
+    });
+});
+</script>
+{% endblock %}

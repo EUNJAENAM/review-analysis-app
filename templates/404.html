@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}페이지를 찾을 수 없습니다 - 오색그린야드호텔 리뷰 분석{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <div class="card">
+            <div class="card-body">
+                <i class="fas fa-exclamation-triangle fa-5x text-warning mb-4"></i>
+                <h2 class="mb-3">404</h2>
+                <h4 class="mb-3">페이지를 찾을 수 없습니다</h4>
+                <p class="text-muted mb-4">
+                    요청하신 페이지가 존재하지 않거나 이동되었을 수 있습니다.
+                </p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>
+                    홈으로 돌아가기
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
