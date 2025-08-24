@@ -254,6 +254,19 @@ def results(session_id):
         flash('결과를 불러오는 중 오류가 발생했습니다.', 'error')
         return redirect(url_for('index'))
 
+@app.route('/api/plot/<session_id>/<plot_name>')
+def get_plot(session_id, plot_name):
+    """그래프 이미지 제공 (간단 버전에서는 지원하지 않음)"""
+    try:
+        # 현재 간소화된 버전에서는 이미지가 생성되지 않음
+        return jsonify({
+            'error': '현재 버전에서는 이미지 차트를 지원하지 않습니다. 분석 결과는 텍스트로만 제공됩니다.'
+        }), 404
+        
+    except Exception as e:
+        logger.error(f"이미지 제공 오류: {e}")
+        return jsonify({'error': '이미지를 불러오는 중 오류가 발생했습니다.'}), 500
+
 @app.route('/download/<session_id>/<file_type>')
 def download_file(session_id, file_type):
     """파일 다운로드 (간단 버전에서는 지원하지 않음)"""

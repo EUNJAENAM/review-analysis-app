@@ -55,50 +55,25 @@
             </div>
         </div>
 
-        <!-- Analysis Results -->
-        <div class="row">
-            <!-- Left Column -->
-            <div class="col-lg-8">
-                <!-- Charts Section -->
-                <div class="card mb-4">
+        <!-- 분석 결과 섹션 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0">
-                            <i class="fas fa-chart-bar me-2"></i>
-                            주요 차트
+                            <i class="fas fa-chart-bar me-2"></i>분석 결과 요약
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <h6>연도별 트렌드</h6>
-                                <img src="/api/plot/{{ session_id }}/yearly_trend" class="img-fluid" alt="연도별 트렌드">
+                            <div class="col-md-6">
+                                <h6>기본 통계</h6>
+                                <ul class="list-unstyled">
+                                    <li><strong>총 리뷰 수:</strong> {{ session_info.summary.total_reviews }}개</li>
+                                    <li><strong>평균 평점:</strong> {{ "%.2f"|format(session_info.summary.average_rating) }}점</li>
+                                    <li><strong>데이터 기간:</strong> {{ session_info.summary.data_period }}</li>
+                                </ul>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <h6>감정 분포</h6>
-                                <img src="/api/plot/{{ session_id }}/sentiment_distribution" class="img-fluid" alt="감정 분포">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6>부정 키워드 TOP 10</h6>
-                                <img src="/api/plot/{{ session_id }}/negative_keywords" class="img-fluid" alt="부정 키워드">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6>Aspect별 감정 분포</h6>
-                                <img src="/api/plot/{{ session_id }}/aspect_sentiment" class="img-fluid" alt="Aspect별 감정">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Detailed Analysis -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-list-alt me-2"></i>
-                            상세 분석 결과
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
                             <div class="col-md-6">
                                 <h6>감정 분석</h6>
                                 <ul class="list-unstyled">
@@ -107,92 +82,25 @@
                                     <li><strong>중립:</strong> {{ "%.2f"|format(session_info.summary.neutral_ratio) }}%</li>
                                 </ul>
                             </div>
-                            <div class="col-md-6">
-                                <h6>데이터 기간</h6>
-                                <p>{{ session_info.summary.data_period }}</p>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>우선순위 분석</h6>
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>최우선 개선사항:</strong> {{ session_info.summary.top_priority }}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column -->
-            <div class="col-lg-4">
-                <!-- Download Section -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-download me-2"></i>
-                            리포트 다운로드
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            {% if session_info.summary.files.html_report %}
-                            <a href="/download/{{ session_id }}/html" class="btn btn-outline-primary">
-                                <i class="fas fa-file-code me-2"></i>
-                                HTML 리포트
-                            </a>
-                            {% endif %}
-                            
-                            {% if session_info.summary.files.pdf_report %}
-                            <a href="/download/{{ session_id }}/pdf" class="btn btn-outline-danger">
-                                <i class="fas fa-file-pdf me-2"></i>
-                                PDF 리포트
-                            </a>
-                            {% endif %}
-                            
-                            {% if session_info.summary.files.pptx_summary %}
-                            <a href="/download/{{ session_id }}/pptx" class="btn btn-outline-success">
-                                <i class="fas fa-file-powerpoint me-2"></i>
-                                PPTX 요약
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Priority Analysis -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            개선 우선순위
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if session_info.analysis_results.우선순위.상위_3개 %}
-                        <div class="list-group list-group-flush">
-                            {% for item in session_info.analysis_results.우선순위.상위_3개 %}
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>{{ item.Aspect }}</span>
-                                <span class="badge bg-primary rounded-pill">{{ "%.2f"|format(item.우선순위_점수) }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% else %}
-                        <p class="text-muted">우선순위 데이터가 없습니다.</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Session Info -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
+                        
+                        <!-- 이미지 차트 섹션 제거 -->
+                        <div class="alert alert-info mt-3" role="alert">
                             <i class="fas fa-info-circle me-2"></i>
-                            분석 정보
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <small class="text-muted">
-                            <strong>세션 ID:</strong><br>
-                            <code>{{ session_id }}</code><br><br>
-                            <strong>생성 시간:</strong><br>
-                            {{ session_info.created_at[:19].replace('T', ' ') }}<br><br>
-                            <strong>분석 옵션:</strong><br>
-                            고급 분석: {{ '활성화' if session_info.analysis_results.고급분석 else '비활성화' }}
-                        </small>
+                            <strong>현재 버전 안내:</strong> 
+                            이 버전에서는 분석 결과를 텍스트로만 제공합니다. 
+                            차트와 그래프는 향후 업데이트에서 제공될 예정입니다.
+                        </div>
                     </div>
                 </div>
             </div>
