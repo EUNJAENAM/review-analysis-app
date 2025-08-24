@@ -146,48 +146,48 @@
             </div>
         </div>
 
-        <!-- Additional Charts -->
+        <!-- 추가 분석 정보 -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0">
-                            <i class="fas fa-chart-area me-2"></i>
-                            추가 차트
+                            <i class="fas fa-info-circle me-2"></i>
+                            분석 정보
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <h6>우선순위 점수</h6>
-                                <img src="/api/plot/{{ session_id }}/priority_scores" class="img-fluid" alt="우선순위 점수">
+                                <h6>데이터 기간</h6>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    {{ session_info.summary.data_period }}
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <h6>분기별 트렌드</h6>
-                                <img src="/api/plot/{{ session_id }}/quarterly_trend" class="img-fluid" alt="분기별 트렌드">
+                                <h6>생성된 차트</h6>
+                                <div class="alert alert-success">
+                                    <i class="fas fa-chart-pie me-2"></i>
+                                    {% if session_info.summary.charts %}
+                                        {% for chart_name in session_info.summary.charts.keys() %}
+                                            <span class="badge bg-primary me-1">{{ chart_name }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">생성된 차트 없음</span>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <h6>세그먼트 분석</h6>
-                                <img src="/api/plot/{{ session_id }}/segment_analysis" class="img-fluid" alt="세그먼트 분석">
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>분석 완료 시간</h6>
+                                <div class="alert alert-light">
+                                    <i class="fas fa-clock me-2"></i>
+                                    {{ session_info.created_at[:19].replace('T', ' ') }}
+                                </div>
                             </div>
-                            {% if session_info.analysis_results.고급분석 %}
-                            <div class="col-md-6 mb-3">
-                                <h6>SHAP 특성 중요도</h6>
-                                <img src="/api/plot/{{ session_id }}/shap_feature_importance" class="img-fluid" alt="SHAP 특성 중요도">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6>모델 성능 비교</h6>
-                                <img src="/api/plot/{{ session_id }}/model_performance" class="img-fluid" alt="모델 성능 비교">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6>토픽 분포</h6>
-                                <img src="/api/plot/{{ session_id }}/topic_distribution" class="img-fluid" alt="토픽 분포">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6>변화점 탐지</h6>
-                                <img src="/api/plot/{{ session_id }}/change_point_detection" class="img-fluid" alt="변화점 탐지">
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
