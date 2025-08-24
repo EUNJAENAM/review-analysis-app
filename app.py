@@ -31,12 +31,15 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB 제한
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
-# 업로드 폴더 생성
+# 업로드 폴더 생성 (절대 경로 사용)
 UPLOAD_FOLDER.mkdir(exist_ok=True)
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# 배포 환경 확인
+IS_PRODUCTION = os.environ.get('FLASK_ENV') == 'production'
 
 def allowed_file(filename):
     """파일 확장자 검증"""
@@ -227,16 +230,25 @@ def start_analysis(session_id):
 def results(session_id):
     """결과 페이지"""
     try:
+        logger.info(f"결과 페이지 접속: {session_id}")
+        
         session_folder = UPLOAD_FOLDER / session_id
+        logger.info(f"세션 폴더 경로: {session_folder}")
+        logger.info(f"세션 폴더 존재: {session_folder.exists()}")
         
         # CSV 파일 존재 확인
         csv_file = session_folder / 'data.csv'
         if not csv_file.exists():
+            logger.error(f"CSV 파일을 찾을 수 없음: {csv_file}")
             flash('업로드된 파일을 찾을 수 없습니다.', 'error')
             return redirect(url_for('index'))
         
+        logger.info(f"CSV 파일 발견: {csv_file}")
+        
         # HTML 리포트 파일이 존재하는지 확인
         html_report_path = session_folder / 'outputs' / 'report' / 'report.html'
+        logger.info(f"HTML 리포트 경로: {html_report_path}")
+        logger.info(f"HTML 리포트 존재: {html_report_path.exists()}")
         
         if not html_report_path.exists():
             # 분석이 완료되지 않은 경우, 즉시 분석 수행
@@ -290,6 +302,8 @@ def results(session_id):
         
         # 실제 분석 결과를 사용한 세션 정보 생성
         try:
+            logger.info("실제 데이터 처리 시작")
+            
             # 분석 결과에서 실제 데이터 추출
             loader = DataLoader(csv_file)
             df = loader.get_clean_data()
@@ -338,12 +352,17 @@ def results(session_id):
                 'analysis_results': analysis_results
             }
             
+            logger.info("실제 데이터 처리 완료")
+            
             return render_template('results.html', 
                                  session_info=real_session_info,
                                  session_id=session_id)
             
         except Exception as e:
             logger.error(f"실제 데이터 처리 중 오류: {e}")
+            import traceback
+            logger.error(f"상세 오류: {traceback.format_exc()}")
+            
             # 폴백: 기본 정보
             fallback_session_info = {
                 'session_id': session_id,
@@ -375,6 +394,8 @@ def results(session_id):
         
     except Exception as e:
         logger.error(f"결과 페이지 오류: {e}")
+        import traceback
+        logger.error(f"상세 오류: {traceback.format_exc()}")
         flash('결과를 불러오는 중 오류가 발생했습니다.', 'error')
         return redirect(url_for('index'))
 
@@ -435,6 +456,9 @@ def internal_error(e):
     return render_template('500.html'), 500
 
 if __name__ == '__main__':
-    # 개발 환경에서는 debug=True, 배포 환경에서는 False
+    # 배포 환경에서는 환경 변수에서 포트를 가져옴
+    port = int(os.environ.get('PORT', 5000))
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
-    app.run(debug=debug_mode, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    
+    # 배포 환경에서는 0.0.0.0으로 바인딩
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
